@@ -1,12 +1,18 @@
 import 'dart:convert'; // For encoding/decoding JSON
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:http/http.dart' as http; // For HTTP requests
+import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
 
-class Login extends StatelessWidget {
+class Login extends StatefulWidget {
+  @override
+  State<Login> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool isPasswordVisible = false; // State for password visibility
 
   Future<void> authenticate(BuildContext context) async {
     final email = emailController.text.trim();
@@ -25,7 +31,7 @@ class Login extends StatelessWidget {
       final response = await http.post(Uri.parse(loginUrl),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            'username': email, // Use 'username' for DummyJSON
+            'username': email,
             'password': password,
           }));
 
@@ -33,14 +39,10 @@ class Login extends StatelessWidget {
       print('Response Data: $data');
 
       if (response.statusCode == 200 && data['accessToken'] != null) {
-        // Save token locally
         final box = GetStorage();
-        box.write('accessToken', data['accessToken']); // Save access token
-        box.write('userData', data); // Save entire user data (optional)
-
-        // Navigate to dashboard
-        Get.offAllNamed(
-            '/dashboard'); // Use offAllNamed to remove login screen from navigation stack
+        box.write('accessToken', data['accessToken']);
+        box.write('userData', data);
+        Get.offAllNamed('/dashboard');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data['message'] ?? 'Login failed')),
@@ -57,7 +59,25 @@ class Login extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login Screen'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue, Colors.purple],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        title: const Text(
+          'Login Screen',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -65,57 +85,63 @@ class Login extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Title
-            const Text(
-              "Welcome Back!",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
             const SizedBox(height: 20),
-
-            // Email TextField
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email (Username for DummyJSON)',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email),
+              decoration: InputDecoration(
+                labelText: 'Email= emilys (Using Username DummyJSON)',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                prefixIcon: const Icon(Icons.email),
+                filled: true,
+                fillColor: Colors.grey[200],
               ),
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 15),
-
-            // Password TextField
             TextField(
               controller: passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
+              decoration: InputDecoration(
+                labelText: 'Password = emilyspass (Using Username DummyJSON)',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                prefixIcon: const Icon(Icons.lock),
+                filled: true,
+                fillColor: Colors.grey[200],
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      isPasswordVisible = !isPasswordVisible; // Toggle visibility
+                    });
+                  },
+                ),
               ),
-              // obscureText: true, // Hides the password
+              obscureText: !isPasswordVisible, // Toggle password visibility
             ),
             const SizedBox(height: 20),
-
-            // Login Button
             ElevatedButton(
               onPressed: () {
-                authenticate(context); // Trigger authentication
+                authenticate(context);
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                elevation: 5,
+                backgroundColor: Colors.blue,
               ),
               child: const Text(
                 'Login',
                 style: TextStyle(fontSize: 18),
               ),
             ),
-
             const SizedBox(height: 20),
-            // Register Link
             GestureDetector(
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(

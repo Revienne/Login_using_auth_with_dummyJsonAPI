@@ -11,6 +11,7 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   List<dynamic> products = []; // List to store product data
+  List<dynamic> cart = []; // Cart to store added products
   bool isLoading = true; // Loading state
 
   @override
@@ -50,6 +51,30 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
+  // Function to add a product to the cart
+  void addToCart(dynamic product) {
+    setState(() {
+      cart.add(product);
+    });
+    Get.snackbar(
+      "Added to Cart",
+      "${product['title']} has been added to your cart.",
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+
+  // Function to remove a product from the cart
+  void removeFromCart(dynamic product) {
+    setState(() {
+      cart.remove(product);
+    });
+  }
+
+  // Function to calculate the total price of the cart
+  double calculateTotal() {
+    return cart.fold(0, (sum, item) => sum + item['price']);
+  }
+
   // Logout function
   void logout() {
     final box = GetStorage();
@@ -63,6 +88,22 @@ class _DashboardState extends State<Dashboard> {
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              // Navigate to the Cart screen
+              showModalBottomSheet(
+                context: context,
+                builder: (_) {
+                  return Cart(
+                    cart: cart,
+                    removeFromCart: removeFromCart,
+                    calculateTotal: calculateTotal,
+                  );
+                },
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: logout,
@@ -118,12 +159,7 @@ class _DashboardState extends State<Dashboard> {
                               const SizedBox(height: 10),
                               ElevatedButton(
                                 onPressed: () {
-                                  // Handle "Add to Cart" action
-                                  Get.snackbar(
-                                    "Added to Cart",
-                                    "${product['title']} has been added to your cart.",
-                                    snackPosition: SnackPosition.BOTTOM,
-                                  );
+                                  addToCart(product); // Add product to the cart
                                 },
                                 style: ElevatedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
@@ -140,6 +176,60 @@ class _DashboardState extends State<Dashboard> {
                   );
                 },
               ),
+      ),
+    );
+  }
+}
+
+// Cart Widget
+class Cart extends StatelessWidget {
+  final List<dynamic> cart;
+  final Function(dynamic) removeFromCart;
+  final Function calculateTotal;
+
+  const Cart({
+    required this.cart,
+    required this.removeFromCart,
+    required this.calculateTotal,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Your Cart',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          cart.isEmpty
+              ? const Text('Your cart is empty!')
+              : Expanded(
+                  child: ListView.builder(
+                    itemCount: cart.length,
+                    itemBuilder: (context, index) {
+                      final item = cart[index];
+                      return ListTile(
+                        title: Text(item['title']),
+                        subtitle: Text('\$${item['price']}'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => removeFromCart(item),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+          const SizedBox(height: 20),
+          Text(
+            'Total: \$${calculateTotal().toStringAsFixed(2)}',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }
