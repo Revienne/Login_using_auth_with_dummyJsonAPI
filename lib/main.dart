@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/login', page: () => Login()),
         GetPage(
           name: '/dashboard',
-          page: () => Dashbord(),
+          page: () => Dashboard(),
           middlewares: [AuthMiddleware()], // Apply middleware here
         ),
       ],

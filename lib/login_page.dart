@@ -1,7 +1,7 @@
 import 'dart:convert'; // For encoding/decoding JSON
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http; // For HTTP requests
 import 'package:get/get.dart';
 
 class Login extends StatelessWidget {
@@ -25,7 +25,7 @@ class Login extends StatelessWidget {
       final response = await http.post(Uri.parse(loginUrl),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            'username': email,
+            'username': email, // Use 'username' for DummyJSON
             'password': password,
           }));
 
@@ -33,10 +33,14 @@ class Login extends StatelessWidget {
       print('Response Data: $data');
 
       if (response.statusCode == 200 && data['accessToken'] != null) {
+        // Save token locally
         final box = GetStorage();
-        box.write('accessToken', data['accessToken']);
-        box.write('userData', data);
-        Get.offAllNamed('/dashboard');
+        box.write('accessToken', data['accessToken']); // Save access token
+        box.write('userData', data); // Save entire user data (optional)
+
+        // Navigate to dashboard
+        Get.offAllNamed(
+            '/dashboard'); // Use offAllNamed to remove login screen from navigation stack
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data['message'] ?? 'Login failed')),
@@ -53,25 +57,7 @@ class Login extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue, Colors.purple],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        title: const Text(
-          'Login Screen',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: true,
-        elevation: 0,
+        title: const Text('Login Screen'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -79,6 +65,7 @@ class Login extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Title
             const Text(
               "Welcome Back!",
               style: TextStyle(
@@ -88,52 +75,47 @@ class Login extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
+
+            // Email TextField
             TextField(
               controller: emailController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Email (Username for DummyJSON)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                prefixIcon: const Icon(Icons.email),
-                filled: true,
-                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.email),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 15),
+
+            // Password TextField
             TextField(
               controller: passwordController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Password',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                prefixIcon: const Icon(Icons.lock),
-                filled: true,
-                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.lock),
               ),
-              obscureText: true,
+              // obscureText: true, // Hides the password
             ),
             const SizedBox(height: 20),
+
+            // Login Button
             ElevatedButton(
               onPressed: () {
-                authenticate(context);
+                authenticate(context); // Trigger authentication
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                elevation: 5,
-                backgroundColor: Colors.blue,
               ),
               child: const Text(
                 'Login',
                 style: TextStyle(fontSize: 18),
               ),
             ),
+
             const SizedBox(height: 20),
+            // Register Link
             GestureDetector(
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
